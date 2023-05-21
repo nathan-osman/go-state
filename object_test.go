@@ -39,7 +39,39 @@ func TestObjectUpdate(t *testing.T) {
 	} {
 		v.Dest.Update(v.Src)
 		if !reflect.DeepEqual(v.Dest, v.Output) {
-			t.Fatalf("%s: %s", v.Name, "v.Dest != v.Output")
+			t.Fatalf("%s: v.Dest != v.Output", v.Name)
+		}
+	}
+}
+
+func TestObjectEvent(t *testing.T) {
+	for _, v := range []struct {
+		Name   string
+		Object Object
+		Data   string
+	}{
+		{
+			Name:   "empty object",
+			Object: Object{},
+			Data:   "{}",
+		},
+		{
+			Name:   "simple object",
+			Object: Object{"1": "2"},
+			Data:   "{\"1\":\"2\"}",
+		},
+		{
+			Name:   "nested object",
+			Object: Object{"1": Object{"2": "3"}},
+			Data:   "{\"1\":{\"2\":\"3\"}}",
+		},
+	} {
+		e, err := v.Object.Event()
+		if err != nil {
+			t.Fatalf("%s: %s", v.Name, err)
+		}
+		if e.Data != v.Data {
+			t.Fatalf("%s: \"%s\" != \"%s\"", v.Name, e.Data, v.Data)
 		}
 	}
 }

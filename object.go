@@ -1,5 +1,11 @@
 package state
 
+import (
+	"encoding/json"
+
+	"github.com/lampctl/go-sse"
+)
+
 // Object provides a simple means of storing, updating, and serializing data.
 // Use Object instances as values to nest data.
 type Object map[string]any
@@ -34,4 +40,15 @@ func (o Object) Update(newObject Object) {
 		// They are both objects, recurse!
 		oldObj.Update(newObj)
 	}
+}
+
+// Event creates an *sse.Event from the Object.
+func (o Object) Event() (*sse.Event, error) {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+	return &sse.Event{
+		Data: string(b),
+	}, nil
 }
