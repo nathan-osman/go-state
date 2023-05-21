@@ -65,7 +65,8 @@ func (s *State) filterFn(v any, e *sse.Event) bool {
 
 func New(cfg *Config) *State {
 	s := &State{
-		cfg: cfg,
+		cfg:  cfg,
+		data: make(map[string]Object),
 	}
 	s.handler = sse.NewHandler(&sse.HandlerConfig{
 		ConnectedFn: s.connectedFn,
