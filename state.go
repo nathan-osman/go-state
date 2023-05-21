@@ -1,9 +1,7 @@
 package state
 
 import (
-	"encoding/json"
 	"net/http"
-	"reflect"
 	"sync"
 
 	"github.com/lampctl/go-sse"
@@ -23,23 +21,13 @@ type Config struct {
 }
 
 // State provides a thread-safe way to manage, update, and synchronize
-// application state. Clients are assigned roles and data is sent to them based
-// on their roles.
+// application state. Clients are assigned roles and objects are sent to them
+// based on their roles.
 type State struct {
 	mutex   sync.Mutex
 	cfg     *Config
 	handler *sse.Handler
-	data    map[string]reflect.Value
-}
-
-func (s *State) dataToEvent(v any) (*sse.Event, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	return &sse.Event{
-		Data: string(b),
-	}, nil
+	data    map[string]Object
 }
 
 func (s *State) connectedFn(r *http.Request) any {
@@ -49,11 +37,11 @@ func (s *State) connectedFn(r *http.Request) any {
 func (s *State) initFn(v any) []*sse.Event {
 	defer s.mutex.Unlock()
 	s.mutex.Lock()
-	iVal, ok := s.data[v.(string)]
+	o, ok := s.data[v.(string)]
 	if !ok {
 		return nil
 	}
-	e, err := s.dataToEvent(iVal.Interface())
+	e, err := o.Event()
 	if err != nil {
 		// TODO: log error
 		return nil
@@ -87,14 +75,31 @@ func New(cfg *Config) *State {
 	return s
 }
 
-// Update merges the provided value into the value for the provided roles.
-func (s *State) Update(v any, roles []string) {
+// Update merges the provided object into the object for the provided roles. If
+// roles is set to nil, all roles will be assumed.
+func (s *State) Update(o Object, roles []string) {
+	defer s.mutex.Unlock()
+	s.mutex.Lock()
 
-	// TODO: loop through each of the roles, updating the data in each
+	// Update the object for each of the specified roles
+	if roles == nil {
+		for _, r := range s.data {
+			r.Update(o)
+		}
+	} else {
+		for _, r := range roles {
+			v, ok := s.data[r]
+			if !ok {
+				v = Object{}
+				s.data[r] = v
+			}
+			v.Update(o)
+		}
+	}
 
 	// Send the delta update to the connected clients; FilterFn will ensure
 	// that only the clients with that role receive it
-	e, err := s.dataToEvent(v)
+	e, err := o.Event()
 	if err != nil {
 		// TODO: log error
 		return
