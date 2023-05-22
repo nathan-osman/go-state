@@ -66,6 +66,15 @@ func (s *State) filterFn(v any, e *sse.Event) bool {
 	return false
 }
 
+func (s *State) getOrCreateObject(r string) Object {
+	o, ok := s.data[r]
+	if !ok {
+		o = Object{}
+		s.data[r] = o
+	}
+	return o
+}
+
 func (s *State) sendDeltaUpdate(o Object, roles []string) {
 	e, err := o.Event()
 	if err != nil {
@@ -103,12 +112,7 @@ func (s *State) Update(newObj Object, roles []string) {
 		}
 	} else {
 		for _, r := range roles {
-			o, ok := s.data[r]
-			if !ok {
-				o = Object{}
-				s.data[r] = o
-			}
-			o.Update(newObj)
+			s.getOrCreateObject(r).Update(newObj)
 		}
 	}
 
