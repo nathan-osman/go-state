@@ -66,6 +66,17 @@ func (s *State) filterFn(v any, e *sse.Event) bool {
 	return false
 }
 
+func (s *State) sendDeltaUpdate(o Object, roles []string) {
+	e, err := o.Event()
+	if err != nil {
+		// TODO: log error
+		return
+	}
+	e.Type = TypeDelta
+	e.UserData = roles
+	s.handler.Send(e)
+}
+
 func New(cfg *Config) *State {
 	s := &State{
 		cfg:  cfg,
@@ -103,12 +114,5 @@ func (s *State) Update(newObj Object, roles []string) {
 
 	// Send the delta update to the connected clients; FilterFn will ensure
 	// that only the clients with that role receive it
-	e, err := newObj.Event()
-	if err != nil {
-		// TODO: log error
-		return
-	}
-	e.Type = TypeDelta
-	e.UserData = roles
-	s.handler.Send(e)
+	s.sendDeltaUpdate(newObj, roles)
 }
