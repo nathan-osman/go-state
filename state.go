@@ -146,3 +146,8 @@ func (s *State) UpdateFunc(fn func(o Object) Object, roles []string) {
 		}
 	}
 }
+
+// Close shuts down the state and waits for all connections to close.
+func (s *State) Close() {
+	s.handler.Close()
+}

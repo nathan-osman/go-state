@@ -48,6 +48,7 @@ func TestState(t *testing.T) {
 		},
 	} {
 		s := New(nil)
+		defer s.Close()
 		v.UpdateFn(s)
 		if !reflect.DeepEqual(s.data, v.Data) {
 			t.Fatalf("%s: %#v != %#v", v.Name, s.data, v.Data)
