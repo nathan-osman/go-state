@@ -81,29 +81,29 @@ func New(cfg *Config) *State {
 
 // Update merges the provided object into the object for the provided roles. If
 // roles is set to nil, all roles will be assumed.
-func (s *State) Update(o Object, roles []string) {
+func (s *State) Update(newObj Object, roles []string) {
 	defer s.mutex.Unlock()
 	s.mutex.Lock()
 
 	// Update the object for each of the specified roles
 	if roles == nil {
-		for _, r := range s.data {
-			r.Update(o)
+		for _, o := range s.data {
+			o.Update(newObj)
 		}
 	} else {
 		for _, r := range roles {
-			v, ok := s.data[r]
+			o, ok := s.data[r]
 			if !ok {
-				v = Object{}
-				s.data[r] = v
+				o = Object{}
+				s.data[r] = o
 			}
-			v.Update(o)
+			o.Update(newObj)
 		}
 	}
 
 	// Send the delta update to the connected clients; FilterFn will ensure
 	// that only the clients with that role receive it
-	e, err := o.Event()
+	e, err := newObj.Event()
 	if err != nil {
 		// TODO: log error
 		return
