@@ -51,13 +51,13 @@ func (s *State) initFn(v any) []*sse.Event {
 }
 
 func (s *State) filterFn(v any, e *sse.Event) bool {
-	if e.UserData == nil {
-		return true
-	}
 	var (
 		role  = v.(string)
 		roles = e.UserData.([]string)
 	)
+	if roles == nil {
+		return true
+	}
 	for _, r := range roles {
 		if r == role {
 			return true
