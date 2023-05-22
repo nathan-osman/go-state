@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestState(t *testing.T) {
+func TestStateUpdate(t *testing.T) {
 	for _, v := range []struct {
 		Name     string
 		UpdateFn func(s *State)
