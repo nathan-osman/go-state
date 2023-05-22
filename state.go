@@ -147,6 +147,10 @@ func (s *State) UpdateFunc(fn func(o Object) Object, roles []string) {
 	}
 }
 
+func (s *State) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.handler.ServeHTTP(w, r)
+}
+
 // Close shuts down the state and waits for all connections to close.
 func (s *State) Close() {
 	s.handler.Close()
