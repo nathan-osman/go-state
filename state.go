@@ -86,6 +86,11 @@ func (s *State) sendDeltaUpdate(o Object, roles []string) {
 	s.handler.Send(e)
 }
 
+func (s *State) updateAndSend(o, newObj Object, r string) {
+	o.Update(newObj)
+	s.sendDeltaUpdate(newObj, []string{r})
+}
+
 func New(cfg *Config) *State {
 	s := &State{
 		cfg:  cfg,
@@ -119,4 +124,25 @@ func (s *State) Update(newObj Object, roles []string) {
 	// Send the delta update to the connected clients; FilterFn will ensure
 	// that only the clients with that role receive it
 	s.sendDeltaUpdate(newObj, roles)
+}
+
+// UpdateFunc provides a way to atomically update values in the provided roles.
+// The provided callback is invoked with the value of each role and is expected
+// to return an object of delta updates.
+func (s *State) UpdateFunc(fn func(o Object) Object, roles []string) {
+	defer s.mutex.Unlock()
+	s.mutex.Lock()
+
+	// Because each role's object could get different updates, send a delta
+	// update for each individual change
+	if roles == nil {
+		for r, o := range s.data {
+			s.updateAndSend(o, fn(o), r)
+		}
+	} else {
+		for _, r := range roles {
+			o := s.getOrCreateObject(r)
+			s.updateAndSend(o, fn(o), r)
+		}
+	}
 }

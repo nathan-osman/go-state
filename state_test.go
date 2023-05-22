@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestStateUpdate(t *testing.T) {
+func TestState(t *testing.T) {
 	for _, v := range []struct {
 		Name     string
 		UpdateFn func(s *State)
@@ -30,6 +30,20 @@ func TestStateUpdate(t *testing.T) {
 			Data: map[string]Object{
 				"test1": {},
 				"test2": {"1": "2"},
+			},
+		},
+		{
+			Name: "update with UpdateFunc",
+			UpdateFn: func(s *State) {
+				s.UpdateFunc(func(o Object) Object {
+					return Object{}
+				}, []string{"test"})
+				s.UpdateFunc(func(o Object) Object {
+					return Object{"1": "2"}
+				}, nil)
+			},
+			Data: map[string]Object{
+				"test": {"1": "2"},
 			},
 		},
 	} {
