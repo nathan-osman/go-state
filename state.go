@@ -97,9 +97,11 @@ func New(cfg *Config) *State {
 		data: make(map[string]Object),
 	}
 	s.handler = sse.NewHandler(&sse.HandlerConfig{
-		ConnectedFn: s.connectedFn,
-		InitFn:      s.initFn,
-		FilterFn:    s.filterFn,
+		NumEventsToKeep:   sse.DefaultHandlerConfig.NumEventsToKeep,
+		ChannelBufferSize: sse.DefaultHandlerConfig.ChannelBufferSize,
+		ConnectedFn:       s.connectedFn,
+		InitFn:            s.initFn,
+		FilterFn:          s.filterFn,
 	})
 	return s
 }
