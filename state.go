@@ -131,7 +131,7 @@ func (s *State) Update(newObj Object, roles []string) {
 // UpdateFunc provides a way to atomically update values in the provided roles.
 // The provided callback is invoked with the value of each role and is expected
 // to return an object of delta updates.
-func (s *State) UpdateFunc(fn func(o Object) Object, roles []string) {
+func (s *State) UpdateFunc(fn func(o Object, r string) Object, roles []string) {
 	defer s.mutex.Unlock()
 	s.mutex.Lock()
 
@@ -139,12 +139,12 @@ func (s *State) UpdateFunc(fn func(o Object) Object, roles []string) {
 	// update for each individual change
 	if roles == nil {
 		for r, o := range s.data {
-			s.updateAndSend(o, fn(o), r)
+			s.updateAndSend(o, fn(o, r), r)
 		}
 	} else {
 		for _, r := range roles {
 			o := s.getOrCreateObject(r)
-			s.updateAndSend(o, fn(o), r)
+			s.updateAndSend(o, fn(o, r), r)
 		}
 	}
 }

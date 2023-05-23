@@ -35,10 +35,10 @@ func TestState(t *testing.T) {
 		{
 			Name: "update with UpdateFunc",
 			UpdateFn: func(s *State) {
-				s.UpdateFunc(func(o Object) Object {
+				s.UpdateFunc(func(o Object, r string) Object {
 					return Object{}
 				}, []string{"test"})
-				s.UpdateFunc(func(o Object) Object {
+				s.UpdateFunc(func(o Object, r string) Object {
 					return Object{"1": "2"}
 				}, nil)
 			},
